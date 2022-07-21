@@ -4,31 +4,27 @@ import dayjs from 'dayjs';
 
 import pauseImg from './assets/pause.webp';
 import pomodoroImg from './assets/pomodoro.gif';
+import Tab from './components/Tab';
+import { playAudio } from './lib/play-audio';
 
-type mode = 'pause' | 'pomodoro';
+export type Mode = {
+    name: 'pause' | 'work';
+    minutes: number;
+};
+
+const WorkMode: Mode = { name: 'work', minutes: 0.1 };
+const PauseMode: Mode = { name: 'pause', minutes: 5 };
 
 const App: Component = () => {
     const [startTime] = createSignal(dayjs(0));
-    const [goalTime, setGoalTime] = createSignal(
-        startTime().add(25, 'minutes')
+    const [mode, setMode] = createSignal<Mode>(WorkMode);
+    const [counter, setCounter] = createSignal(
+        startTime().add(mode().minutes, 'minutes')
     );
-    const [counter, setCounter] = createSignal(goalTime());
-    const [mode, setMode] = createSignal<mode>('pomodoro');
 
     const [running, setRunning] = createSignal(false);
+
     let interval: any;
-
-    function playAudio(type: mode) {
-        const pomodoroAudio = new Audio(
-            'https://vgmsite.com/soundtracks/pokemon-gameboy-sound-collection/ueldaopg/126-pokemon%20whistle.mp3'
-        );
-        const pauseAudio = new Audio(
-            'https://vgmsite.com/soundtracks/pokemon-gameboy-sound-collection/znqhqixi/111-pokemon%20recovery.mp3'
-        );
-
-        if (type === 'pause') return pauseAudio.play();
-        if (type === 'pomodoro') return pomodoroAudio.play();
-    }
 
     createEffect(() => {
         if (counter() <= startTime()) {
@@ -48,44 +44,37 @@ const App: Component = () => {
         }
     });
 
-    const setTimer = (time: number) => {
-        setRunning(true);
-        setGoalTime(startTime().add(time, 'minutes'));
-        setCounter(goalTime());
-        document.title = counter().format('mm:ss');
-    };
+    createEffect(() => setCounter(startTime().add(mode().minutes, 'minutes')));
 
     return (
         <div class='flex h-screen flex-col items-center justify-center'>
             <h1 class=' text-9xl font-bold'>{counter().format('mm:ss')}</h1>
             <div class='mb-16' />
             <div>
-                <button
-                    disabled={running()}
-                    onClick={() => {
-                        setTimer(25);
-                        setMode('pomodoro');
-                    }}>
-                    pomodor
+                <Tab
+                    mode={mode}
+                    title='work'
+                    onClick={() => setMode(WorkMode)}
+                />
+                <Tab
+                    mode={mode}
+                    title='pause'
+                    onClick={() => setMode(PauseMode)}
+                />
+            </div>
+            <div class='mb-16' />
+            <div>
+                <button onClick={() => setRunning(r => !r)}>
+                    {running() ? 'pause' : 'start'}
                 </button>
-                <button
-                    disabled={running()}
-                    onClick={() => {
-                        setTimer(5);
-                        setMode('pause');
-                    }}>
-                    break
-                </button>
-
-                <button onClick={() => setRunning(r => !r)}>pause timer</button>
             </div>
             <div class='mb-16' />
 
             <div class='flex h-32 items-end justify-end overflow-hidden'>
-                {mode() === 'pause' && (
+                {mode().name === 'pause' && (
                     <img class='w-20' src={pauseImg} alt='' />
                 )}
-                {mode() === 'pomodoro' && (
+                {mode().name === 'work' && (
                     <img class='w-20' src={pomodoroImg} alt='' />
                 )}
             </div>
