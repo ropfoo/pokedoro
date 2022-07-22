@@ -3,7 +3,8 @@ import { Component, createEffect, createSignal } from 'solid-js';
 import dayjs from 'dayjs';
 
 import pauseImg from './assets/pause.webp';
-import pomodoroImg from './assets/pomodoro.gif';
+import workImg from './assets/bike-riding.gif';
+import workStopImg from './assets/bike-stop.gif';
 import Tab from './components/Tab';
 import { playAudio } from './lib/play-audio';
 
@@ -22,6 +23,8 @@ const App: Component = () => {
         startTime().add(mode().minutes, 'minutes')
     );
 
+    const [move, setMove] = createSignal(0);
+
     const [running, setRunning] = createSignal(false);
 
     let interval: any;
@@ -36,6 +39,7 @@ const App: Component = () => {
     createEffect(() => {
         if (running()) {
             interval = setInterval(() => {
+                setMove(m => m + 1);
                 setCounter(c => c.add(-1, 'seconds'));
                 document.title = counter().format('mm:ss');
             }, 1000);
@@ -76,12 +80,19 @@ const App: Component = () => {
                 </div>
                 <div class='mb-16' />
 
-                <div class='flex h-32 items-end justify-end overflow-hidden'>
+                <div
+                    class='flex h-32 items-end justify-end overflow-hidden '
+                    style={{ transform: `translate(0}px)` }}>
                     {mode().name === 'pause' && (
                         <img class='w-20' src={pauseImg} alt='' />
                     )}
                     {mode().name === 'work' && (
-                        <img class='w-20' src={pomodoroImg} alt='' />
+                        <img
+                            style={{ transform: 'scaleX(-1)' }}
+                            class='w-20'
+                            src={running() ? workImg : workStopImg}
+                            alt=''
+                        />
                     )}
                 </div>
             </div>
