@@ -30,9 +30,18 @@ const App: Component = () => {
     let interval: any;
 
     createEffect(() => {
-        if (counter() <= startTime()) {
-            playAudio(mode());
-            setRunning(false);
+        const onEnd = async () => {
+            if (counter() <= startTime() && running()) {
+                await playAudio(mode());
+                setRunning(false);
+            }
+        };
+        onEnd();
+    });
+
+    createEffect(() => {
+        if (counter() <= startTime() && !running()) {
+            setMode(m => (m.name === 'pause' ? WorkMode : PauseMode));
         }
     });
 
@@ -61,19 +70,21 @@ const App: Component = () => {
                     <Tab
                         mode={mode}
                         title='work'
+                        type='work'
                         onClick={() => setMode(WorkMode)}
                     />
-                    <div class='ml-16' />
+                    <div class='ml-9' />
                     <Tab
                         mode={mode}
-                        title='pause'
+                        type='pause'
+                        title='small break'
                         onClick={() => setMode(PauseMode)}
                     />
                 </div>
                 <div class='mb-16' />
                 <div>
                     <button
-                        class='text-2xl text-slate-400'
+                        class='p-2 text-2xl text-slate-400 transition-all hover:scale-105 hover:text-white'
                         onClick={() => setRunning(r => !r)}>
                         {running() ? 'pause' : 'start'}
                     </button>
